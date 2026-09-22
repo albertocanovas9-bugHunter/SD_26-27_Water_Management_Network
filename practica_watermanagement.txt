@@ -1,0 +1,119 @@
+SD-::- Práctica WaterManagement -::- Curso 26/27
+Release 1
+Sistemas Distribuidos
+Práctica no guiada: Sockets, Streaming de Eventos, Colas y modularidad.
+Water Management Network
+
+Preámbulo
+El objetivo de esta práctica es que los estudiantes extiendan y afiancen sus conocimientos sobre el uso de la tecnología de comunicación básica sockets, estudiada durante las sesiones de teoría.
+Los sockets son la base de las comunicaciones entre computadores y suponen el punto de enlace básico entre nuestra aplicación e Internet, utilizando muy pocos recursos de red.
+Como contrapartida, las aplicaciones que utilizan sockets como mecanismo de comunicación deben interpretar los mensajes que intercambian entre sí, es decir, deben establecer un protocolo o acuerdo de comunicación entre ellos. Esta necesidad implica un fuerte acoplamiento entre las aplicaciones distribuidas que utilizan sockets como mecanismo de comunicación, ya que todas las partes deben conocer de antemano la estructura de los mensajes que serán intercambiados y codificarlo en su programación.
+Por otro lado, otras tecnologías y arquitecturas actuales orientadas al streaming de eventos en tiempo real, basadas en sockets pero de más alto nivel en términos de construcción y desarrollo, permiten la implementación de soluciones menos acopladas y más resilientes que estos.
+Esta práctica establece el marco inicial de un desarrollo que se ampliará durante el cuatrimestre y que permitirá al estudiante crear una aplicación similar a las que se desarrollan hoy en día en los entornos empresariales, poniendo el foco en el uso e integración de distintos paradigmas de comunicación susceptibles de ser utilizados.
+
+El riego inteligente en las ciudades
+La gestión eficiente del agua se ha convertido en uno de los grandes retos de las ciudades actuales. El mantenimiento de parques, jardines y zonas verdes urbanas requiere de un riego constante y bien planificado, pero este consumo debe conciliarse con la necesidad, cada vez más acuciante, de un uso racional y sostenible del agua.
+El riego manual o no supervisado presenta importantes ineficiencias: exceso de riego en zonas con humedad suficiente, fugas no detectadas que se prolongan durante horas o días sin que nadie lo advierta, o estaciones fuera de servicio de las que no se tiene constancia hasta que el personal de mantenimiento las visita físicamente. Frente a esto, una red de estaciones de riego conectadas y supervisadas de forma centralizada permite conocer en todo momento el estado de cada punto de la ciudad, detectar incidencias de forma temprana, evitar el derroche de un recurso escaso y facilitar la planificación del mantenimiento de las zonas verdes.
+Además, la monitorización continua de humedad y consumo aporta información valiosa para la toma de decisiones tanto técnicas como económicas y medioambientales, y sienta las bases para una futura optimización del riego basada en datos reales de cada zona.
+Este no es un problema teórico: en España, las pérdidas reales de agua en las redes de distribución (fugas, roturas y averías) se estiman en un 14,6% del volumen total suministrado (INE, 2024). Alicante, en cambio, se sitúa muy por encima de esa media, con un rendimiento técnico hidráulico del 88,55%, apoyado en la digitalización de su red de sensores y contadores. La propia ciudad cuenta además con una red de agua regenerada que da acceso a riego a cerca del 87% de sus zonas verdes, reduciendo así el consumo de agua potable destinado a esta finalidad.
+En este contexto, la práctica que se propone busca acercar al estudiante al reto de implementar los conceptos teóricos de la asignatura de sistemas distribuidos en una problemática real: gestionar y supervisar de manera integral, resiliente, escalable y segura una red de riego que cubre múltiples parques y jardines de una ciudad.
+
+Especificación
+El objetivo de la práctica es desarrollar un sistema distribuido que implemente una simulación de una solución para la gestión centralizada del riego de los parques y jardines de una ciudad.
+
+Descripción funcional
+Los estudiantes deberán implementar una solución de control online en tiempo real denominada "WaterManagement".
+
+Alcance
+La solución tendrá como objetivo realizar un sistema que simula la gestión de una red de estaciones de riego (en adelante también "Watering Station" o "WS") distribuidas por los parques y jardines de una ciudad, y su uso tanto por el ayuntamiento/gestor de la red como por los operarios de mantenimiento que activan y supervisan el riego sobre el terreno.
+Nuestra simulación consistirá en, partiendo de un mapa de una ciudad ficticia, disponer de una serie de estaciones de riego repartidas entre sus distintos parques y jardines, en las que los operarios, provistos de una aplicación, podrán activar y supervisar el riego de cada zona.
+Todas las estaciones de riego son gestionadas desde una central que las dará de alta, las operará y las monitorizará en caso de que se produzcan incidencias.
+Para la realización de todo el sistema, nos basaremos en una serie de componentes distribuidos que estarán interconectados y que conformarán la solución de manera resiliente, escalable y segura.
+
+CENTRAL. Sistema de monitorización de la red
+Dispondremos de un cuadro de mandos o panel de monitorización donde se podrá observar el detalle de funcionamiento en tiempo real de todo el sistema incluyendo las estaciones de riego, las peticiones de activación y el estado del sistema central.
+En el panel que muestre la información de detalle la información a visualizar será la siguiente:
+- ID de la estación de riego.
+- Ubicación de la estación (parque/jardín/zona de la ciudad).
+- Cantidad de agua que se está suministrando.
+- Estado:
+  - Disponible (activada): La WS está funcionando correctamente y a la espera de una solicitud de riego. Se mostrará mediante un fondo de color VERDE.
+  - Regando: La WS está funcionando correctamente y está, en ese momento, suministrando riego a la zona que cubre. Se mostrará mediante un fondo de color VERDE PARPADEANDO y con los siguientes datos impresos:
+    - Caudal en litros/minuto en tiempo real.
+    - Volumen acumulado en litros en tiempo real.
+    - Id del operario que ha activado el riego.
+  - Fuga: La WS está conectada al sistema central, pero presenta una fuga detectada por su sensor y no debe producirse riego hasta resolver la avería. Se mostrará mediante un color ROJO de fondo.
+  - Fuera de servicio (parada): La WS está en correcto funcionamiento, pero no puede usarse deliberadamente por orden de CENTRAL. Se mostrará mediante un fondo de color NARANJA con la leyenda "Fuera de Servicio".
+  - Desconectada: La WS no está conectada al sistema central (por avería, fallo de red o cualquier otro motivo) y no es posible monitorizar su uso. Se mostrará mediante un color GRIS de fondo.
+
+OPERARIOS DE CAMPO (FIELD OPERATORS - FO)
+Los operarios (personal de mantenimiento de parques y jardines) dispondrán de una aplicación que les permitirá activar el riego de una estación determinada. Dicha aplicación enviará a CENTRAL la petición de activación y ésta le responderá autorizándola o denegándola.
+El sistema central, como se verá en el apartado de mecánica de la solución, deberá velar porque la estación de riego esté disponible antes de autorizar la activación.
+
+ESTACIONES DE RIEGO (WATERING STATION - WS)
+Estaciones ubicadas en los distintos parques y jardines de la ciudad en las que se realiza el riego de la zona verde que cubren.
+Cada estación de riego integra:
+- Caudalímetro: mide la cantidad de agua que está suministrando.
+- Detector de fuga: detecta pérdidas anómalas de agua en la instalación de la estación.
+- Actuador de electroválvula: permite abrir o cerrar el paso de agua para iniciar o detener el riego.
+Los estados en los que puede entrar una WS son los expresados anteriormente en el panel de control de CENTRAL.
+Las estaciones de riego permiten las siguientes funcionalidades:
+- Registrarse en CENTRAL: enviarán para ello su Id y ubicación a CENTRAL.
+- Activarse o pararse.
+- Regar: proporcionar el servicio de riego de dos formas:
+  - Manualmente, mediante una opción en la propia estación.
+  - A través de una petición proveniente de la aplicación del operario (vía CENTRAL) o incluso desde la propia CENTRAL.
+- Medir el volumen de agua que están suministrando.
+Estas estaciones disponen a su vez de una capacidad de supervisión continua de su propio estado (sensores y actuador) que permite controlar su buen funcionamiento o detectar una posible avería.
+
+Mecánica de la solución
+El sistema comienza mediante la ejecución del módulo central (en adelante "CENTRAL") que permanecerá en ejecución sin límite de tiempo sin apagarse en ningún momento (salvo que una excepción o bloqueo súbito provoque su apagado no controlado).
+Tendrá lugar entonces la siguiente secuencia:
+1. Ante cualquier ejecución o reinicio, CENTRAL comprobará (en su BD) si ya tiene estaciones de riego disponibles registradas (con su ubicación) y las mostrará en su panel de monitorización y control en su estado correspondiente. IMPORTANTE: hasta que una estación de riego no conecte con CENTRAL, ésta no podrá conocer el estado real de la estación. En ese caso, la mostrará con el estado DESCONECTADA.
+2. CENTRAL siempre estará a la espera de:
+   a. Recibir peticiones de registro y alta de una nueva estación de riego.
+   b. Recibir peticiones de activación de un riego.
+3. Los operarios, desde su aplicación o desde un menú en la propia estación, solicitarán la activación del riego en cualquier estación. Con el objetivo académico de automatizar las pruebas del sistema, además de poder solicitar la activación manualmente, la aplicación del operario también podrá leer las activaciones a solicitar desde un archivo.
+4. CENTRAL procederá a realizar las comprobaciones oportunas para validar que la estación de riego esté disponible (activada, sin avería ni fuga detectada) y, en su caso, solicitará autorización a la estación para que proceda al riego. Todo el proceso requerirá de la notificación al operario de los pasos que van sucediendo hasta autorizar o denegar el riego. Dichos mensajes se deben mostrar claramente en pantalla, tanto en la aplicación del operario como en CENTRAL.
+5. Las estaciones de riego, una vez se han registrado y conectado a CENTRAL, estarán en estado de reposo a la espera de que un operario solicite, bien en el propio interfaz de la estación o a través de su aplicación, una activación de riego.
+6. Realizadas todas las comprobaciones por CENTRAL y enviada la notificación tanto a la WS como a la aplicación del operario para que se proceda a la activación, el sistema procederá a la apertura de la electroválvula.
+7. Durante el riego, la estación de riego estará enviando información constante (cada segundo) a CENTRAL, la cual mostrará en su panel de monitorización el caudal y el volumen acumulado que va teniendo lugar en cada WS. La aplicación del operario igualmente mostrará esos estados de la WS que está regando.
+8. El riego continuará indefinidamente hasta que se produzca una de estas dos condiciones:
+   - Se alcance un límite de tiempo prestablecido en el momento de iniciar el riego.
+   - Se ejecute una opción de menú en la WS para finalizar el suministro.
+En ambos casos las WS lo notificará a CENTRAL, quien a su vez enviará un resumen final del riego (volumen total consumido, duración, etc.) al operario. La WS volverá al estado de reposo a la espera de una nueva petición de activación.
+9. Durante todo el funcionamiento del sistema, la estación de riego estará comprobando el estado de salud de sus propios elementos. En caso de avería (detección de una fuga), notificará a CENTRAL dicha situación. Una vez resuelta la contingencia, se enviará un nuevo mensaje a CENTRAL y la WS volverá a estar disponible. Si la avería se produjera durante un riego en curso, éste debe finalizar inmediatamente informando a todos los módulos y aplicaciones de dicha situación. Toda la información tiene que ser claramente visible en pantalla tanto en CENTRAL como en el monitor de la estación.
+10. CENTRAL recibirá todos los estados y riegos de todas las WS. Los operarios sólo recibirán los mensajes de la WS específica que les esté prestando servicio, pero también podrán ver todas las WS que estén disponibles.
+11. CENTRAL permanecerá siempre en funcionamiento a la espera de nuevas peticiones de activación. Adicionalmente dispondrá de opciones para, de forma arbitraria, poder enviar a una o todas las WS cualquiera de estas órdenes:
+    - Iniciar un riego: Se comportará de la misma forma que si lo hiciera un operario.
+    - Bloquear la WS: La WS finalizará cualquier riego si estuviera en ejecución y pondrá su estado en NARANJA mostrando el mensaje de "Fuera de Servicio".
+    - Activar la WS: La WS volverá a estado ACTIVADA y pondrá su color en VERDE.
+La acción se va desarrollando de forma asíncrona, es decir, sin "turnos", de manera que cada operario, CENTRAL y cada WS envían mensajes o peticiones de riego en cualquier momento.
+
+Diseño técnico
+Se propone al estudiante implementar un sistema distribuido compuesto, al menos, de los siguientes componentes software:
+- Core System: Módulos centrales de la solución.
+  - CENTRAL: Módulo que representa la central de control de toda la solución. Implementa la lógica y gobierno de todo el sistema.
+- Watering Station (WS): Módulos que simulan las estaciones de riego.
+  - Engine: Módulo que recibe la información del caudalímetro y activa la electroválvula.
+  - Monitor: Módulo que monitoriza la salud de todo el sistema y que reporta a la CENTRAL cualquier avería de este (fuga). Sirve igualmente para autenticar y registrar a los WS en la central cuando sea oportuno.
+- Operator App: Aplicación que usan los operarios (jardineros) para controlar las estaciones de riego.
+
+Los componentes pueden ser desarrollados en el lenguaje de preferencia del estudiante: Java, C/C++, .NET, Python, etc., asumiendo el estudiante la responsabilidad de su conocimiento y forma de desplegarlo.
+El subsistema de gestión de streaming de eventos será implementado mediante la tecnología KAFKA.
+
+Detalle de componentes:
+- CENTRAL ("WM_Central"): Recibirá por línea de parámetros el puerto de escucha del servidor de sockets para el monitor y la IP/puerto del Broker de Kafka. Usará obligatoriamente SQLite como base de datos para operarios y estaciones.
+- Engine ("WM_WS_E"): Recibirá IP/puerto de Kafka y del Monitor de la WS.
+- Monitor ("WM_WS_M"): Recibirá el puerto de su servidor de sockets para el Engine, la IP/puerto de WM_Central y el ID de la WS. Se autenticará en la central y comprobará cada segundo la salud del Engine (reportando fugas o anomalías).
+- Field Operators ("WM_FO"): Recibirá IP/puerto de Kafka y el ID del operador. Permitirá peticiones puntuales o lectura desde un fichero (esperando 4 segundos entre peticiones sucesivas).
+
+Protocolos de comunicación
+Se recomienda usar una mensajería basada en el estándar de empaquetado <STX><DATA><ETX><LRC> donde <REQUEST> y <ANSWER> contienen los campos separados por caracteres delimitadores (ej. Código Operación#campo1#...#campo n) y el <LRC> es el XOR byte a byte para validación, respondido con <ACK> o <NACK>.
+
+Guía mínima de despliegue
+- Sistemas en Cloud (alojados en RAILWAY): WM_Central, BD SQLite y KAFKA.
+- Laboratorio: Varios WM_FO en un PC y varios WM_WS en otro PC.
+- Uso obligatorio de Docker para la contenerización de todos los módulos.
+- Uso obligatorio de GitHub para el control de versiones.
+- Fecha de entrega: Semana del 26 de octubre de 2026.
