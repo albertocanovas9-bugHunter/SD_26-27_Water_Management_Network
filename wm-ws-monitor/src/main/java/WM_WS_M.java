@@ -13,7 +13,7 @@ import java.util.Scanner;
 public class WM_WS_M {
 
     private static final String HOST = "localhost";
-    private static final int PUERTO = 8010;
+    private static final int PUERTO = 5000;
     private static final int TIMEOUT_MS = 15_000;
 
     public static void main(String[] args) {
