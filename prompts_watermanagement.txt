@@ -1,0 +1,23 @@
+PROMPT BASE UTILIZADO PARA DISEÑAR LA ARQUITECTURA
+
+Actúa como arquitecto de software Java especializado en sistemas distribuidos. Diseña la arquitectura inicial de un proyecto llamado Water Management Network para una práctica de Sistemas Distribuidos.
+
+El sistema debe gestionar una red de estaciones de riego urbanas mediante los siguientes componentes:
+
+- WM_Central: servidor central que coordina estaciones y operadores, mantiene el estado global y utiliza una persistencia local basada inicialmente en un fichero de texto.
+- WM_Central_UI: interfaz independiente para visualizar estaciones, estados, caudal, volumen, operadores e incidencias.
+- WM_WS_E: Engine de cada estación, encargado de simular el caudalímetro, la electroválvula y el riego.
+- WM_WS_M: Monitor de cada estación, encargado del registro, autenticación, latidos, supervisión del Engine y detección de fugas.
+- WM_WS_UI: interfaz local de la estación.
+- WM_FO: lógica cliente de los operadores de campo.
+- WM_FO_UI: interfaz independiente de los operadores para solicitar y supervisar riegos.
+- WM_shared: contratos, estados, mensajes, DTOs y protocolo común.
+- WM_Central_Persistence: módulo desacoplado para leer y escribir la persistencia en fichero de texto.
+
+La solución debe permitir que Central, sus interfaces, los operadores y las estaciones se ejecuten como procesos independientes. Las interfaces no deben acceder directamente a la persistencia ni compartir memoria con los servidores. La comunicación debe quedar preparada para utilizar sockets TCP y Kafka. El protocolo de sockets podrá seguir el formato <STX><DATA><ETX><LRC>, con validación XOR y respuestas ACK/NACK.
+
+Organiza el repositorio como un proyecto Java 17 multimódulo gestionado por Maven. El repositorio debe tener un POM raíz y un POM independiente para cada módulo. Define las dependencias entre módulos de forma que las aplicaciones compartan únicamente los contratos necesarios y mantengan separadas sus responsabilidades.
+
+No implementes todavía la lógica funcional, las interfaces, los sockets, Kafka ni Docker. Crea únicamente la estructura de carpetas, los POM y las relaciones necesarias para que el proyecto sea escalable y pueda implementar posteriormente los requisitos de la práctica.
+
+Incluye una explicación de la función de cada módulo, sus relaciones, la estrategia de persistencia y una guía básica para importar, actualizar y compilar el proyecto desde Eclipse y Maven.
